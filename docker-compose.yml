@@ -1,0 +1,42 @@
+version: "3.8"
+
+services:
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    image: sandboxapp
+    container_name: app
+    restart: unless-stopped
+    volumes:
+      - ./:/var/www
+
+  nginx:
+    build:
+      context: .
+      dockerfile: Dockerfile_Nginx
+    image: nginx:1.19-alpine
+    container_name: docker-nginx
+    restart: unless-stopped
+    ports:
+      - "8080:80"
+    volumes:
+      - ./:/var/www
+      - ./config/nginx/:/etc/nginx/conf.d/
+    depends_on: 
+      - app
+
+  database:
+    image: mysql:5.7.22
+    container_name: database
+    environment:
+      MYSQL_DATABASE: sandbox
+      MYSQL_ROOT_PASSWORD: rootadmin
+    ports:
+      - 3308:3306
+    volumes:
+      - dbdata:/var/lib/mysql
+
+volumes:
+  dbdata:
+    driver: local
